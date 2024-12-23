@@ -1,0 +1,46 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class GunShoot : MonoBehaviour
+{
+    public Camera playerCam;
+    public float fireRate;
+    public float range = 100;
+    float nextFire = 0;
+
+    public ParticleSystem muzzleFlash;
+    public GameObject bulletImpact;
+
+    void Start()
+    {
+        if (muzzleFlash != null)
+        {
+            muzzleFlash.Stop(); // หยุดการเล่นตอนเริ่มเกม
+        }
+    }
+
+    void Update()
+    {
+        if (Mouse.current.leftButton.isPressed && Time.time >= nextFire)
+        {
+            nextFire = Time.time + 1 / fireRate;
+
+            if (muzzleFlash != null)
+            {
+                muzzleFlash.Stop(); // รีเซ็ต Particle System
+                muzzleFlash.Play(); // เล่น Particle ใหม่
+            }
+
+            RaycastHit hit;
+            if (Physics.Raycast(playerCam.transform.position, playerCam.transform.forward, out hit, range))
+            {
+                if (bulletImpact != null)
+                {
+                    Instantiate(bulletImpact, hit.point, Quaternion.LookRotation(hit.normal));
+                }
+            }
+        }
+    }
+}
