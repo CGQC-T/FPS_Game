@@ -1,0 +1,176 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using TMPro;
+
+public class GunAnimation : MonoBehaviour
+{
+    Animator anim;
+
+    public static int currentAmmo = 30;
+    public int magCapacity = 30;
+    public int totalAmmo = 60;
+
+    public TMP_Text ammoText;
+    public TMP_Text totalAmmoText;
+
+    public static bool isReloading = false;
+    public static bool isSprinting = false;
+
+    public AudioSource[] audioSources;
+
+    void Start()
+    {
+        anim = GetComponent<Animator>();
+
+        // ตรวจสอบว่า audioSources ถูกตั้งค่าใน Inspector หรือไม่
+        if (audioSources == null || audioSources.Length == 0)
+        {
+            Debug.LogError("Audio sources are not assigned!");
+        }
+
+        // ตั้งค่าตัวแปรเริ่มต้น
+        isReloading = false;
+    }
+
+    void Update()
+    {
+        // อัปเดต UI ของกระสุน
+        UpdateAmmoText();
+
+        // จัดการการเคลื่อนไหวและเสียง
+        HandleMovementAndAudio();
+
+        // จัดการการยิงและเสียง
+        HandleShootingAndAudio();
+
+        // จัดการการเล็ง
+        HandleAiming();
+
+        // จัดการการรีโหลด
+        HandleReloading();
+    }
+
+    void UpdateAmmoText()
+    {
+        if (ammoText != null) ammoText.text = currentAmmo.ToString();
+        if (totalAmmoText != null) totalAmmoText.text = totalAmmo.ToString();
+    }
+
+    void HandleMovementAndAudio()
+    {
+        if (Input.GetKey(KeyCode.W))
+        {
+            anim.SetBool("isWalk", true);
+            PlayAudio(0);
+
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                anim.SetBool("isSprint", true);
+                isSprinting = true;
+
+                StopAudio(0); // หยุดเสียงเดิน
+                PlayAudio(1); // เล่นเสียงวิ่ง
+            }
+            else
+            {
+                anim.SetBool("isSprint", false);
+                isSprinting = false;
+
+                StopAudio(1); // หยุดเสียงวิ่ง
+            }
+        }
+        else
+        {
+            anim.SetBool("isWalk", false);
+            StopAudio(0); // หยุดเสียงเดิน
+        }
+    }
+
+    void HandleShootingAndAudio()
+    {
+        if (Input.GetMouseButton(0) && currentAmmo > 0 && !isReloading)
+        {
+            anim.SetBool("isWalkShoot", true);
+            PlayAudio(2);
+        }
+        else
+        {
+            anim.SetBool("isWalkShoot", false);
+            StopAudio(2);
+        }
+
+        if (Input.GetMouseButton(0) && currentAmmo > 0 && !isReloading)
+        {
+            anim.SetBool("isIdleShoot", true);
+            PlayAudio(2);
+        }
+        else
+        {
+            anim.SetBool("isIdleShoot", false);
+        }
+    }
+
+    void HandleAiming()
+    {
+        if (Input.GetMouseButton(1))
+        {
+            anim.SetBool("isAim", true);
+            PlayAudio(3);
+        }
+        else
+        {
+            anim.SetBool("isAim", false);
+            StopAudio(3);
+        }
+    }
+
+    void HandleReloading()
+    {
+        if ((Input.GetKeyDown(KeyCode.R) && currentAmmo != magCapacity && totalAmmo > 0) ||
+            (currentAmmo <= 0 && currentAmmo != magCapacity && totalAmmo > 0))
+        {
+            anim.SetBool("isReload", true);
+            isReloading = true;
+            PlayAudio(4);
+
+            StartCoroutine(ReloadTime());
+        }
+    }
+
+    IEnumerator ReloadTime()
+    {
+        yield return new WaitForSeconds(3.5f);
+        anim.SetBool("isReload", false);
+
+        int ammoNeeded = magCapacity - currentAmmo;
+        if (totalAmmo >= ammoNeeded)
+        {
+            totalAmmo -= ammoNeeded;
+            currentAmmo = magCapacity;
+        }
+        else
+        {
+            currentAmmo += totalAmmo;
+            totalAmmo = 0;
+        }
+
+        isReloading = false;
+    }
+
+    void PlayAudio(int index)
+    {
+        if (audioSources != null && index < audioSources.Length && !audioSources[index].isPlaying)
+        {
+            audioSources[index].Play();
+        }
+    }
+
+    void StopAudio(int index)
+    {
+        if (audioSources != null && index < audioSources.Length && audioSources[index].isPlaying)
+        {
+            audioSources[index].Stop();
+        }
+    }
+}
