@@ -28,7 +28,7 @@ public class GunAnimation : MonoBehaviour
         {
             Debug.LogError("Audio sources are not assigned!");
         }
-
+        
         // ตั้งค่าตัวแปรเริ่มต้น
         isReloading = false;
     }
@@ -111,19 +111,30 @@ public class GunAnimation : MonoBehaviour
         }
     }
 
+    bool isAimingAudioPlaying = false;
+
     void HandleAiming()
     {
         if (Input.GetMouseButton(1))
         {
             anim.SetBool("isAim", true);
-            PlayAudio(3);
+            if (!isAimingAudioPlaying)
+            {
+                PlayAudio(3);
+                isAimingAudioPlaying = true;
+            }
         }
         else
         {
             anim.SetBool("isAim", false);
-            StopAudio(3);
+            if (isAimingAudioPlaying)
+            {
+                StopAudio(3);
+                isAimingAudioPlaying = false;
+            }
         }
     }
+
 
     void HandleReloading()
     {
