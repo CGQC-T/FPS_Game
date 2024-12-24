@@ -1,0 +1,67 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GunSelection : MonoBehaviour
+{
+    public int gunSelected;
+
+    void Start()
+    {
+        selectGun();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        int prevGun = gunSelected;
+
+        // Scroll down
+        if (Input.GetAxis("Mouse ScrollWheel") > 0)
+        {
+            if (gunSelected >= transform.childCount - 1)
+            {
+                gunSelected = 0;
+            }
+            else
+            {
+                gunSelected++;
+            }
+        }
+
+        // Scroll up
+        if (Input.GetAxis("Mouse ScrollWheel") < 0)
+        {
+            if (gunSelected <= 0)
+            {
+                gunSelected = transform.childCount - 1;
+            }
+            else
+            {
+                gunSelected--; // แก้ไขจาก gunSlected เป็น gunSelected
+            }
+        }
+
+        if (prevGun != gunSelected)
+        {
+            selectGun();
+        }
+    }
+
+    public void selectGun()
+    {
+        int i = 0;
+        foreach (Transform gun in transform)
+        {
+            if (i == gunSelected)
+            {
+                gun.gameObject.SetActive(true);
+            }
+            else
+            {
+                gun.gameObject.SetActive(false);
+            }
+            i++;
+        }
+    }
+}
